@@ -39,7 +39,21 @@ In the cloud we need to not care about individual servers or services and treat 
 - A __User__ can have many __Policies__ attached
 - A __User__ can be in multiple __Groups__
 - A __Group__ can have many __Policies__ attached
-- A __Policy__ *defines* the access rights
+- A __Policy__ *defines* the access 
+
+- __ARN__ is an [Amazon Resource Name](http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html) to identify a particular resource.  __ARNs__ can be users, roles, S3 buckets, accounts.
+
+```
+arn:aws:iam::123456789012:user/aheld
+arn:aws:sts::123456789012:federated-user/Bob
+arn:aws:iam::aws:policy/AdministratorAccess
+arn:aws:s3:::nrg_training/README.md
+arn:aws:iam::123456789012:role/application_abc/component_xyz/S3Access
+arn:aws:ec2:region:account-id:network-acl/nacl-id
+arn:aws:ec2:region:account-id:subnet/subnet-id
+```
+
+
 
 #### Policy
 
@@ -93,3 +107,37 @@ A User is identified by AWS using either username/password OR access and secret 
    - It should fail 
 8. Try to [download the file](http://docs.aws.amazon.com/cli/latest/reference/s3/cp.html)
    - It should succeed
+
+
+## Execution Roles
+- Systems have execution roles.  Similar in concept to a windows Service Account, but there is no username associated, just a role.
+  - The role has policies attached
+[Execution Role](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-service.html)
+
+
+## Service Policies
+- Policies are not just for users, services can also have policies attached. 
+- These are attached to an instance of a service, such as an S3 bucket
+[S3 Bucket Policy](http://docs.aws.amazon.com/AmazonS3/latest/dev/using-iam-policies.html)
+
+```json
+{
+  "Version": "2012-10-17",
+  "Id": "S3PolicyId1",
+  "Statement": [
+    {
+      "Sid": "IPAllow",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": "arn:aws:s3:::examplebucket/*",
+      "Condition": {
+         "IpAddress": {"aws:SourceIp": "54.240.143.0/24"},
+         "NotIpAddress": {"aws:SourceIp": "54.240.143.188/32"} 
+      } 
+    } 
+  ]
+}
+```
+
+Roles 
