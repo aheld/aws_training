@@ -50,7 +50,7 @@ http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html)
           "aws:SourceArn": "arn:aws:s3:*:*:nrg-train-archive"
         }
       }
-    ```
+```
 
 ### Website
 1. Create a new bucket for hosting website content
