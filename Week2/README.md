@@ -38,6 +38,7 @@ http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html)
 1. Login with your Admin account and create a new bucket for storing data and logs
 2. Decide on a directory structure for BGE data
  - it is not a directory, it is a URL like filepath
+ - Once you have spent time crafting a clean URL namespace watch [The Value of Values](https://www.infoq.com/presentations/Value-Values) and feel bad about our designs.
  - Event based ETL
  - use metadata for 'ETL'? 
    - __NEVER COPY or MOVE FILES AGAIN__
@@ -61,6 +62,3 @@ http://docs.aws.amazon.com/AmazonS3/latest/dev/storage-class-intro.html)
 3. make a 'developer' role with write access to this bucket
  - assert that restrictedUser can't write to it
  
-
-
-
