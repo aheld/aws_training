@@ -96,12 +96,16 @@ aws iam create-group --group-name IsOurThingWebMasters
 ```
 
 ```
-aws iam attach-group-policy --policy-arn arn:aws:iam::99999999999:policy/isourthingDev --group-name IsOurThingWebMasters
+aws iam attach-group-policy \ 
+  --policy-arn arn:aws:iam::99999999999:policy/isourthingDev \
+  --group-name IsOurThingWebMasters
 ```
 
 #### Assign restrictedUser to that group
 ```
-aws iam attach-group-policy --policy-arn arn:aws:iam::99999999999:policy/isourthingDev --group-name IsOurThingWebMasters
+aws iam attach-group-policy \ 
+  --policy-arn arn:aws:iam::99999999999:policy/isourthingDev \
+  --group-name IsOurThingWebMasters
 ```
 Finally we can test to see if this restricted user can access the website.
 
@@ -142,7 +146,8 @@ aws cloudfront list-distributions | jq '.DistributionList.Items[] | select( .Ori
 
 or 
 ```
-aws cloudfront get-distribution-config --id $(aws cloudfront list-distributions | jq '.DistributionList.Items[] | select( .Origins.Items[].Id == "S3-nrgretail_api") | .Id' -r)
+aws cloudfront get-distribution-config \ 
+  --id $(aws cloudfront list-distributions | jq '.DistributionList.Items[] | select( .Origins.Items[].Id == "S3-nrgretail_api") | .Id' -r)
 ```
 
 edit the output and save it to a config file.  Then we can create the distribution using that file
@@ -164,7 +169,7 @@ aws cloudfront tag-resource --resource `jq .Distribution.ARN cf_output.json -r` 
 deploy it  
 ```
   aws s3 sync --acl public-read --delete dist/ s3://aws.isourthing.com
-``
+```
 
 Add it to package.json 
 
