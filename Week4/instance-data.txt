@@ -1,11 +1,18 @@
 #!/bin/bash
-yum -y update
-yum -y install httpd24 php56 -y
-service httpd start
-chkconfig httpd on
-cd /var/www/html
+sudo yum -y update
+sudo yum -y install httpd24 php56 -y
+sudo service httpd start
+sudo chkconfig httpd on
+sudo groupadd www
+sudo usermod -a -G www ec2-user
+sudo chown -R root:www /var/www
+sudo chmod 2775 /var/www
+find /var/www -type d -exec sudo chmod 2775 {} +
+find /var/www -type f -exec sudo chmod 0664 {} +
+cd /var/www/html || return
 mkdir scripts
 mkdir analysis
+mkdir data
 echo "
 <html>
 <body>
@@ -15,7 +22,7 @@ if (\$handle = opendir(\"analysis\")) {
     echo '<ul>';
     while (false !== (\$entry = readdir($handle))) {
         if (\$entry != '.' && \$entry != '..') {
-            echo '<li><a href=\"analysis/' . \$entry . '">' . \$entry . '</a></li>';
+            echo '<li><a href=\"analysis/' . \$entry . '\">' . \$entry . '</a></li>';
         }
     }
     closedir(\$handle);
@@ -27,12 +34,11 @@ if (\$handle = opendir(\"analysis\")) {
 " > index.php
 
 echo "
-for SCRIPT in /scripts/*
+cd scripts
+for SCRIPT in *.sh
 	do
-		if [ -f $SCRIPT -a -x $SCRIPT ]
-		then
-			$SCRIPT
-		fi
+		bash \$SCRIPT
 	done
-mv /scripts/*.html .
+sudo mv *.html ../analysis
+cd ..
 " > run_scripts.sh

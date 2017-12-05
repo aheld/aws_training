@@ -7,6 +7,12 @@
 ## Preparation
  ### Complete Week 3!
   - [Week 3 README.md](../Week3/README.md) 
+ ### Handy tip: CLI autocompletion
+  Add to your /etc/bashrc:
+  ```
+  complete -C aws_completer aws
+  ```
+  Restart shell.
  ### Set up your account 
   - http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html#create-an-iam-user
   - Make sure your default profile is the one you want to use for this tutorial. Alternatively, you can add ```--profile [whatever]``` after aws in every cli command, but that will not be included in these instructions or scripts.
@@ -27,12 +33,6 @@
  ```
  export MY_IP=`curl http://checkip.amazonaws.com/`
  ```
-### Handy tip: CLI autocompletion
-Add to your /etc/bashrc:
-```
-complete -C aws_completer aws
-```
-Restart shell.
 
 ## Create Resources
 
@@ -148,7 +148,7 @@ Attach an AWS managed policy that will allow our EC2 instance to interact with S
 ```
 aws iam attach-role-policy \
   --role-name analytics-processor \
-  --policy-arn arn:aws:iam::$AWS_ACCT_ID:policy/service-role/AmazonEC2RoleforSSM
+  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
 ```
 
 ##### Create an instance profile
@@ -184,7 +184,7 @@ aws ec2 authorize-security-group-ingress \
   --group-name MySecurityGroup \
   --protocol tcp \
   --port 22 \
-  --cidr $MY_IP/32
+  --cidr $MY_IP/24
 
 aws ec2 authorize-security-group-ingress \
   --group-name MySecurityGroup \
@@ -194,9 +194,7 @@ aws ec2 authorize-security-group-ingress \
 
 aws ec2 authorize-security-group-ingress \
   --group-name MySecurityGroup \
-  --protocol tcp \
-  --port 80 \
-  --cidr ::/0
+  --ip-permissions '[{"IpProtocol": "tcp", "FromPort": 80, "ToPort": 80, "Ipv6Ranges": [{"CidrIpv6": "::/0"}]}]'
 ```
 
 #### Get an AMI
@@ -243,14 +241,14 @@ Attach managed policy for lambda execution (provides write permissions to Cloudw
 ```
 aws iam attach-role-policy \
   --role-name analytics-runner \
-  --policy-arn arn:aws:iam::$AWS_ACCT_ID:policy/service-role/AWSLambdaBasicExecutionRole
+  --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 ```
 
 Attach managed policy for EC2 automation:
 ```
 aws iam attach-role-policy \
   --role-name analytics-runner \
-  --policy-arn arn:aws:iam::$AWS_ACCT_ID:policy/service-role/AmazonSSMAutomationRole
+  --policy-arn arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole
 ```
 
 #### Create the lambda function
@@ -263,13 +261,24 @@ Note that this command requires the role arn, whereas others only call for the n
 aws lambda create-function \
   --function-name analytics-sync \
   --runtime python3.6 \
+  --timeout 63 \
   --role arn:aws:iam::$AWS_ACCT_ID:role/analytics-runner \
   --handler analytics-sync.handler \
   --description "Sync scripts and data from S3 to EC2" \
-  --zip-file file://lambda-analytics-sync.zip
+  --zip-file fileb://lambda-analytics-sync.zip
 ```
 
 #### Set up the lambda triggers
+```
+aws lambda add-permission \
+  --function-name analytics-sync \
+  --statement-id somemadeupid \
+  --action "lambda:InvokeFunction" \
+  --principal s3.amazonaws.com \
+  --source-arn arn:aws:s3:::$MY_S3_BUCKET \
+  --source-account $AWS_ACCT_ID
+```
+
 ```
 cat << EOF > notification.json
 {
@@ -353,7 +362,7 @@ EOF
 ```
 
 ```
-aws s3api put-bucket-notification-configuration
+aws s3api put-bucket-notification-configuration \
   --bucket $MY_S3_BUCKET \
   --notification-configuration file://notification.json
 ```
