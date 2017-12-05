@@ -1,0 +1,38 @@
+#!/bin/bash
+yum -y update
+yum -y install httpd24 php56 -y
+service httpd start
+chkconfig httpd on
+cd /var/www/html
+mkdir scripts
+mkdir analysis
+echo "
+<html>
+<body>
+<h1>Data Analysis</h1>
+<?php 
+if (\$handle = opendir(\"analysis\")) {
+    echo '<ul>';
+    while (false !== (\$entry = readdir($handle))) {
+        if (\$entry != '.' && \$entry != '..') {
+            echo '<li><a href=\"analysis/' . \$entry . '">' . \$entry . '</a></li>';
+        }
+    }
+    closedir(\$handle);
+    echo '</ul>';
+}
+?>
+</body>
+</html>
+" > index.php
+
+echo "
+for SCRIPT in /scripts/*
+	do
+		if [ -f $SCRIPT -a -x $SCRIPT ]
+		then
+			$SCRIPT
+		fi
+	done
+mv /scripts/*.html .
+" > run_scripts.sh
