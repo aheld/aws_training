@@ -1,0 +1,44 @@
+#!/bin/bash
+sudo yum -y update
+sudo yum -y install httpd24 php56 -y
+sudo service httpd start
+sudo chkconfig httpd on
+sudo groupadd www
+sudo usermod -a -G www ec2-user
+sudo chown -R root:www /var/www
+sudo chmod 2775 /var/www
+find /var/www -type d -exec sudo chmod 2775 {} +
+find /var/www -type f -exec sudo chmod 0664 {} +
+cd /var/www/html || return
+mkdir scripts
+mkdir analysis
+mkdir data
+echo "
+<html>
+<body>
+<h1>Data Analysis</h1>
+<?php 
+if (\$handle = opendir(\"analysis\")) {
+    echo '<ul>';
+    while (false !== (\$entry = readdir($handle))) {
+        if (\$entry != '.' && \$entry != '..') {
+            echo '<li><a href=\"analysis/' . \$entry . '\">' . \$entry . '</a></li>';
+        }
+    }
+    closedir(\$handle);
+    echo '</ul>';
+}
+?>
+</body>
+</html>
+" > index.php
+
+echo "
+cd scripts
+for SCRIPT in *.sh
+	do
+		bash \$SCRIPT
+	done
+sudo mv *.html ../analysis
+cd ..
+" > run_scripts.sh
